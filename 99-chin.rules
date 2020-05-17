@@ -1,0 +1,9 @@
+#http://www.reactivated.net/writing_udev_rules.html
+
+#sudo cp 99-chin.rules /etc/udev/rules.d/
+#sudo udevadm control --reload-rules
+#sudo udevadm trigger
+
+KERNEL=="ttyACM*", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="8036", MODE:="0777", SYMLINK="chinRFlex"
+KERNEL=="ttyACM*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b",ATTRS{serial}=="0668FF515055657867245427", MODE:="0777", SYMLINK="chinRArm"
+KERNEL=="ttyACM*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b",ATTRS{serial}=="0670FF323831524157151123", MODE:="0777", SYMLINK="chinRobot"
