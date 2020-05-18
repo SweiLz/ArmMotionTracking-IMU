@@ -236,10 +236,12 @@ if __name__ == "__main__":
     _thread_update_imu.start()
 
     time.sleep(1.0)
+    operate = True
 
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
         if cmd == "config":
+            operate = False
             if is_imu_connected:
                 for i in range(30):
                     JR1.read_raw()
@@ -265,13 +267,16 @@ if __name__ == "__main__":
                 print("Save calibration config.")
             else:
                 print("IMU device is not connect.")
+        elif cmd == "visual":
+            start_arm = True
 
-    else:
+    if operate == True:
         rospy.loginfo("info message")
         _thread_update_Rarm = threading.Thread(target=update_Rarm_thread)
-        _thread_update_Rarm.start()
         _thread_update_Larm = threading.Thread(target=update_Larm_thread)
-        _thread_update_Larm.start()
+        if start_arm:
+            _thread_update_Rarm.start()
+            _thread_update_Larm.start()
 
         with open(cfg_fname, 'r') as config_file:
             cfg_data = json.load(config_file)
@@ -289,13 +294,9 @@ if __name__ == "__main__":
                 q_imuR2 = JR2.read()
                 q_imuR3 = JR3.read()
                 q_imuL1 = JL1.read()
-                # q_imuL1 = q_imuR1
                 q_imuL2 = JL2.read()
-                # q_imuL2 = q_imuR2
                 q_imuL3 = JL3.read()
 
-                # print(q_imuR1, q_imuR2, q_imuR3)
-                # print(q_imuL1, q_imuL2, q_imuL3)
                 try:
                     # Calculate Right IMU to Right hand
                     q_r_shoulder_fixed = quaternion_from_euler(
