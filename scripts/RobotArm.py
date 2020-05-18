@@ -237,6 +237,7 @@ if __name__ == "__main__":
 
     time.sleep(1.0)
     operate = True
+    start_arm = True
 
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
@@ -268,7 +269,7 @@ if __name__ == "__main__":
             else:
                 print("IMU device is not connect.")
         elif cmd == "visual":
-            start_arm = True
+            start_arm = False
 
     if operate == True:
         rospy.loginfo("info message")
