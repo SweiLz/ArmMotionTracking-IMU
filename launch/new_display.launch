@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-
-    <!-- <node pkg="imu_project" name="robotarm" type="RobotArm.py" output="screen"/> -->
-    <node name="rviz" pkg="rviz" type="rviz" required="true" />
-</launch>

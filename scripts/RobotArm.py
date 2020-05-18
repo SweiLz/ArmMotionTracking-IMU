@@ -141,7 +141,7 @@ def update_Rarm_thread():
         while is_running:
             if any(q_joint[0]):
                 cmds = q_joint[0]
-                # print("target -> {}".format(jq))
+                print("target -> {}".format(q_joint[0]))
                 cmds[0] = constrain(cmds[0], 0, 90)
                 cmds[1] = constrain(cmds[1], 0, 90)
                 cmds[2] = constrain(mapf(cmds[2], 90, -90, 0, 180), 0, 180)
@@ -156,8 +156,8 @@ def update_Rarm_thread():
 
                 cmd = "{:03d} {:03d} {:03d} {:03d} {:03d} {:03d} {:03d}\r\n".format(
                     cmds[0], cmds[1], cmds[2], cmds[3], cmds[4], cmds[5], 0)
-                # cmd = "1{:03d}\r\n".format(cmds[1])
-                # print(cmd)
+                # cmd = "2{:03d}\r\n".format(cmds[2])
+                print(cmd)
                 _serial.write(cmd)
                 time.sleep(0.1)
                 _serial.read(_serial.inWaiting())
@@ -234,10 +234,7 @@ if __name__ == "__main__":
     is_running = True
     _thread_update_imu = threading.Thread(target=update_imu_thread)
     _thread_update_imu.start()
-    _thread_update_Rarm = threading.Thread(target=update_Rarm_thread)
-    _thread_update_Rarm.start()
-    _thread_update_Larm = threading.Thread(target=update_Larm_thread)
-    _thread_update_Larm.start()
+
     time.sleep(1.0)
 
     if len(sys.argv) > 1:
@@ -271,6 +268,10 @@ if __name__ == "__main__":
 
     else:
         rospy.loginfo("info message")
+        _thread_update_Rarm = threading.Thread(target=update_Rarm_thread)
+        _thread_update_Rarm.start()
+        _thread_update_Larm = threading.Thread(target=update_Larm_thread)
+        _thread_update_Larm.start()
 
         with open(cfg_fname, 'r') as config_file:
             cfg_data = json.load(config_file)
