@@ -98,13 +98,14 @@ q_joint = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
 def update_imu_thread():
     global JR1, JR2, JR3, JR4, JL1, JL2, JL3, JL4, is_imu_connected, is_running
     try:
-        _serial = serial.Serial("/dev/robotIMU", 1000000)
+        _serial = serial.Serial("/dev/ttyUSB0", 115200)
         print("Connected to IMU device.")
         is_imu_connected = True
 
         while is_running:
             if _serial.readable():
                 temp = _serial.readline().rstrip('\n').split(',')
+                # print(temp)
                 if len(temp) == 26:
                     try:
                         temp = map(int, temp)
@@ -141,7 +142,7 @@ def update_Rarm_thread():
         while is_running:
             if any(q_joint[0]):
                 cmds = q_joint[0]
-                print("target -> {}".format(q_joint[0]))
+                #print("target -> {}".format(q_joint[0]))
                 cmds[0] = constrain(cmds[0], 0, 90)
                 cmds[1] = constrain(cmds[1], 0, 90)
                 cmds[2] = constrain(mapf(cmds[2], 90, -90, 0, 180), 0, 180)
@@ -157,7 +158,7 @@ def update_Rarm_thread():
                 cmd = "{:03d} {:03d} {:03d} {:03d} {:03d} {:03d} {:03d}\r\n".format(
                     cmds[0], cmds[1], cmds[2], cmds[3], cmds[4], cmds[5], 0)
                 # cmd = "2{:03d}\r\n".format(cmds[2])
-                print(cmd)
+                #print(cmd)
                 _serial.write(cmd)
                 time.sleep(0.1)
                 _serial.read(_serial.inWaiting())
@@ -210,7 +211,7 @@ def update_Larm_thread():
 
                 # constrain(mapf(cmds[5], 90, -90, 0, 180), 0, 180)
                 cmds[5] = 90
-                # print("command-> {}".format(cmds))
+                print("command-> {}".format(cmds))
 
                 cmd = "{:03d} {:03d} {:03d} {:03d} {:03d} {:03d} {:03d}\r\n".format(
                     cmds[0], cmds[1], cmds[2], cmds[3], cmds[4], 90, 0)
@@ -287,7 +288,7 @@ if __name__ == "__main__":
             JL1.setOffset(cfg_data["imuL1"])
             JL2.setOffset(cfg_data["imuL2"])
             JL3.setOffset(cfg_data["imuL3"])
-        rate = rospy.Rate(20)
+        rate = rospy.Rate(100)
         while not rospy.is_shutdown():
             if is_imu_connected:
 
