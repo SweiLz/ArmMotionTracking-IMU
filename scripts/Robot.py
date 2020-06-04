@@ -46,7 +46,7 @@ class RobotNode:
                          arm_robot, self.__left_command_cb)
 
     def __right_command_cb(self, msg):
-        rospy.loginfo("Right val: {}".format(msg))
+        # rospy.loginfo("Right val: {}".format(msg))
 
         if len(msg.joint) == 7:
             cmds = map(int, msg.joint)
@@ -76,7 +76,7 @@ class RobotNode:
             rospy.logwarn("array index not match")
 
     def __left_command_cb(self, msg):
-        rospy.loginfo("Left val: {}".format(msg))
+        # rospy.loginfo("Left val: {}".format(msg))
         if len(msg.joint) == 7:
             cmds = map(int, msg.joint)
 
