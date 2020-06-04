@@ -1,0 +1,4 @@
+geometry_msgs/Quaternion imu_1
+geometry_msgs/Quaternion imu_2
+geometry_msgs/Quaternion imu_3
+std_msgs/Int8 hand

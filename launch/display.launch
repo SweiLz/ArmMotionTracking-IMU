@@ -1,5 +1,13 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- <node pkg="imu_project" name="robotarm" type="RobotArm.py" output="screen"/> -->
+    <arg name="config_imu" default="false"/>
+    <arg name="use_robot" default="true"/>
+
+
     <node name="rviz" pkg="rviz" type="rviz" required="true" />
+    <node pkg="imu_project" name="sensor_node" type="Sensor.py" output="screen">
+        <param name="config" value="$(arg config_imu)"/>
+        <param name="rate" value="40"/>
+    </node>
+    <node pkg="imu_project" name="robot_node" type="Robot.py" output="screen" if="$(arg use_robot)"/>
 </launch>

@@ -13,6 +13,7 @@ from tf.transformations import (euler_from_quaternion, quaternion_from_euler,
                                 quaternion_inverse)
 from geometry_msgs.msg import Quaternion, TransformStamped, Vector3
 from tf2_ros import TransformBroadcaster
+from std_msgs.msg import Float32MultiArray
 
 
 def quaternion_multiply(q1, q0):
@@ -98,7 +99,7 @@ q_joint = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
 def update_imu_thread():
     global JR1, JR2, JR3, JR4, JL1, JL2, JL3, JL4, is_imu_connected, is_running
     try:
-        _serial = serial.Serial("/dev/ttyUSB0", 115200)
+        _serial = serial.Serial("/dev/robotIMU", 115200)
         print("Connected to IMU device.")
         is_imu_connected = True
 
@@ -158,7 +159,7 @@ def update_Rarm_thread():
                 cmd = "{:03d} {:03d} {:03d} {:03d} {:03d} {:03d} {:03d}\r\n".format(
                     cmds[0], cmds[1], cmds[2], cmds[3], cmds[4], cmds[5], 0)
                 # cmd = "2{:03d}\r\n".format(cmds[2])
-                #print(cmd)
+                # print(cmd)
                 _serial.write(cmd)
                 time.sleep(0.1)
                 _serial.read(_serial.inWaiting())
@@ -273,7 +274,6 @@ if __name__ == "__main__":
             start_arm = False
 
     if operate == True:
-        rospy.loginfo("info message")
         _thread_update_Rarm = threading.Thread(target=update_Rarm_thread)
         _thread_update_Larm = threading.Thread(target=update_Larm_thread)
         if start_arm:
@@ -288,10 +288,9 @@ if __name__ == "__main__":
             JL1.setOffset(cfg_data["imuL1"])
             JL2.setOffset(cfg_data["imuL2"])
             JL3.setOffset(cfg_data["imuL3"])
-        rate = rospy.Rate(100)
+        rate = rospy.Rate(50)
         while not rospy.is_shutdown():
             if is_imu_connected:
-
                 q_imuR1 = JR1.read()
                 q_imuR2 = JR2.read()
                 q_imuR3 = JR3.read()
@@ -314,13 +313,17 @@ if __name__ == "__main__":
                         quaternion_inverse(q_r_elbow), q_imuR2)
                     er_e = list(euler_from_quaternion(q_r_elbow, 'rzyx'))
 
-                    q_r_hand_fixed = quaternion_from_euler(0, 0, 0)
+                    q_r_hand_fixed = quaternion_from_euler(
+                        0, 0, 0)
                     q_r_hand = quaternion_multiply(
-                        q_imuR3, quaternion_inverse(q_imuR2))
-                    er_h = list(euler_from_quaternion(q_r_hand, 'sxyz'))
+                        q_imuR2, q_r_hand_fixed)
+                    q_r_hand = quaternion_multiply(
+                        quaternion_inverse(q_r_hand), q_imuR3)
+                    er_h = list(euler_from_quaternion(q_r_hand, 'rzyx'))
 
                     x = map(int, np.array(er_s+er_e+er_h) * 180.0/math.pi)
-                    q_joint[0] = [x[0], x[1], x[2]+x[3], x[4], x[5], x[7], 0]
+                    q_joint[0] = [x[0], x[1], x[2] +
+                                  x[3], x[4], x[5], x[7], 0]
 
                     # Calculate IMU to Left hand
                     q_l_shoulder_fixed = quaternion_from_euler(
@@ -337,9 +340,12 @@ if __name__ == "__main__":
                     el_e = list(euler_from_quaternion(q_l_elbow, 'rzyx'))
 
                     q_l_hand_fixed = quaternion_from_euler(0, 0, 0)
+
                     q_l_hand = quaternion_multiply(
-                        q_imuL3, quaternion_inverse(q_imuL2))
-                    el_h = list(euler_from_quaternion(q_l_hand, 'sxyz'))
+                        q_imuL2, q_r_hand_fixed)
+                    q_l_hand = quaternion_multiply(
+                        quaternion_inverse(q_l_hand), q_imuL3)
+                    el_h = list(euler_from_quaternion(q_l_hand, 'rzyx'))
 
                     x = map(int, np.array(el_s+el_e+el_h) * 180.0/math.pi)
                     q_joint[1] = [x[0], x[1], x[2]+x[3], x[4], x[5], x[7], 0]
@@ -355,7 +361,7 @@ if __name__ == "__main__":
                     sendTF("r_elbow_link", "r_hand_fixed", xyz=[
                         -0.26, 0, 0], q=q_r_hand_fixed)
                     sendTF("r_hand_fixed", "r_hand_link", xyz=[
-                        0.0, 0, 0], q=quaternion_from_euler(0, er_h[2], 0, 'sxyz'))
+                        0.0, 0, 0], q=quaternion_from_euler(0, er_h[1], 0, 'rzyx'))
                     sendTF("r_hand_link", "r_tip_link", xyz=[-0.05, 0, 0])
 
                     sendTF("base_link", "l_shoulder_fixed", xyz=[
@@ -369,11 +375,11 @@ if __name__ == "__main__":
                     sendTF("l_elbow_link", "l_hand_fixed", xyz=[
                         -0.26, 0, 0], q=q_l_hand_fixed)
                     sendTF("l_hand_fixed", "l_hand_link", xyz=[
-                        0.0, 0, 0], q=quaternion_from_euler(0, el_h[2], 0, 'sxyz'))
+                        0.0, 0, 0], q=quaternion_from_euler(0, el_h[1], 0, 'rzyx'))
                     sendTF("l_hand_link", "l_tip_link", xyz=[-0.05, 0, 0])
 
                 except Exception as e:
-                    print(e)
+                    rospy.logerr(e)
 
             rate.sleep()
     is_running = False
